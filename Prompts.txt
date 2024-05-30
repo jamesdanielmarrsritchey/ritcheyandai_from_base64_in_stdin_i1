@@ -1,0 +1,209 @@
+jamesdanielmarrsritchey: ```#include <iostream>
+#include <string>
+#include <vector>
+
+/*
+To compile and install the program on Debian, you can follow these steps:
+
+1. Install the g++ compiler if it's not already installed. You can do this by running the following command in your terminal:
+   sudo apt-get install g++
+
+2. Navigate to the directory containing the source code file (let's call it base64.cpp) using the cd command.
+
+3. Compile the source code file using the g++ compiler. You can do this by running the following command in your terminal:
+   g++ -o base64 base64.cpp
+
+4. Now, you can run the program using the following command:
+   echo -n "Your string here" | ./base64
+
+Please replace "Your string here" with the string you want to convert to Base64. The -n option with echo command is used to prevent adding a newline at the end of the string.
+*/
+
+const std::string base64_chars = 
+             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+             "abcdefghijklmnopqrstuvwxyz"
+             "0123456789+/";
+
+std::string base64_encode(const std::string &input) {
+    std::string ret;
+    int i = 0;
+    int val = 0;
+    int valb = -6;
+
+    for (auto c : input) {
+        val = (val<<8) + c;
+        valb += 8;
+        while (valb >= 0) {
+            ret.push_back(base64_chars[(val>>valb)&0x3F]);
+            valb -= 6;
+        }
+    }
+    if (valb > -6) ret.push_back(base64_chars[((val<<8)>>(valb+8))&0x3F]);
+    while (ret.size() % 4) ret.push_back('=');
+    return ret;
+}
+
+int main() {
+    std::string input;
+    char buffer[3];
+    while (std::cin.read(buffer, sizeof(buffer))) {
+        input.append(buffer, sizeof(buffer));
+    }
+    // Handle remaining bytes
+    input.append(buffer, std::cin.gcount());
+    std::cout << base64_encode(input);
+
+    return 0;
+}
+
+GitHub Copilot: This C++ program is a simple implementation of Base64 encoding. Here's how it works:
+
+1. The `base64_chars` string contains all the characters used in Base64 encoding.
+
+2. The `base64_encode` function takes a string as input and returns its Base64 encoded version. It does this by iterating over each character in the input string, shifting its value and adding it to a temporary variable `val`. The `valb` variable keeps track of how many bits we have in `val`. When `valb` is greater than or equal to 0, we have at least 6 bits in `val` and we can encode a character. We take the 6 most significant bits of `val`, find the corresponding Base64 character, and add it to the output string. We then subtract 6 from `valb` and repeat the process until `valb` is less than 0. If there are remaining bits in `val` after the loop, we encode them as well. Finally, we pad the output string with '=' characters until its length is a multiple of 4.
+
+3. The `main` function reads input from the standard input in chunks of 3 bytes, appends them to a string, and then calls `base64_encode` on the string. It then prints the Base64 encoded string to the standard output.
+
+jamesdanielmarrsritchey: Modify the program to take the data from stdin, and decode it from Base64.
+
+GitHub Copilot: Here's the modified version of your program that decodes Base64 input from stdin:
+
+```cpp
+#include <iostream>
+#include <string>
+#include <vector>
+
+const std::string base64_chars = 
+             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+             "abcdefghijklmnopqrstuvwxyz"
+             "0123456789+/";
+
+int pos(char c) {
+    return base64_chars.find(c);
+}
+
+std::string base64_decode(const std::string &input) {
+    std::string ret;
+    std::vector<int> T(256,-1);
+    for (int i=0; i<64; i++) T[base64_chars[i]] = i;
+
+    int val=0, valb=-8;
+    for (char c : input) {
+        if (T[c] == -1) break;
+        val = (val<<6) + T[c];
+        valb += 6;
+        if (valb>=0) {
+            ret.push_back(char((val>>valb)&0xFF));
+            valb -= 8;
+        }
+    }
+    return ret;
+}
+
+int main() {
+    std::string input;
+    char buffer[4];
+    while (std::cin.read(buffer, sizeof(buffer))) {
+        input.append(buffer, sizeof(buffer));
+    }
+    // Handle remaining bytes
+    input.append(buffer, std::cin.gcount());
+    std::cout << base64_decode(input);
+
+    return 0;
+}
+```
+
+This program works similarly to the previous one, but in reverse. The `base64_decode` function takes a Base64 encoded string as input and returns the original string. It does this by iterating over each character in the input string, shifting its value and adding it to a temporary variable `val`. The `valb` variable keeps track of how many bits we have in `val`. When `valb` is greater than or equal to 0, we have at least 8 bits in `val` and we can decode a character. We take the 8 most significant bits of `val`, convert them to a character, and add it to the output string. We then subtract 8 from `valb` and repeat the process until `valb` is less than 0.
+
+jamesdanielmarrsritchey: Update the comment for compiling, and install the program on Debian
+
+GitHub Copilot: Here's the updated comment for compiling and installing the program on Debian:
+
+```cpp
+/*
+To compile and install the program on Debian, you can follow these steps:
+
+1. Install the g++ compiler if it's not already installed. You can do this by running the following command in your terminal:
+   sudo apt-get install g++
+
+2. Navigate to the directory containing the source code file (let's call it base64_decode.cpp) using the cd command.
+
+3. Compile the source code file using the g++ compiler. You can do this by running the following command in your terminal:
+   g++ -o base64_decode base64_decode.cpp
+
+4. Now, you can run the program using the following command:
+   echo -n "Your Base64 string here" | ./base64_decode
+
+Please replace "Your Base64 string here" with the Base64 string you want to decode. The -n option with echo command is used to prevent adding a newline at the end of the string.
+*/
+```
+
+This comment explains how to compile and run the program. It assumes that the source code file is named `base64_decode.cpp` and that the compiled program is named `base64_decode`. The program reads a Base64 string from the standard input, decodes it, and prints the original string to the standard output.
+
+jamesdanielmarrsritchey: Add this comment to the full program code.
+
+GitHub Copilot: Sure, here's the full program code with the updated comment:
+
+```cpp
+#include <iostream>
+#include <string>
+#include <vector>
+
+/*
+To compile and install the program on Debian, you can follow these steps:
+
+1. Install the g++ compiler if it's not already installed. You can do this by running the following command in your terminal:
+   sudo apt-get install g++
+
+2. Navigate to the directory containing the source code file (let's call it base64_decode.cpp) using the cd command.
+
+3. Compile the source code file using the g++ compiler. You can do this by running the following command in your terminal:
+   g++ -o base64_decode base64_decode.cpp
+
+4. Now, you can run the program using the following command:
+   echo -n "Your Base64 string here" | ./base64_decode
+
+Please replace "Your Base64 string here" with the Base64 string you want to decode. The -n option with echo command is used to prevent adding a newline at the end of the string.
+*/
+
+const std::string base64_chars = 
+             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+             "abcdefghijklmnopqrstuvwxyz"
+             "0123456789+/";
+
+int pos(char c) {
+    return base64_chars.find(c);
+}
+
+std::string base64_decode(const std::string &input) {
+    std::string ret;
+    std::vector<int> T(256,-1);
+    for (int i=0; i<64; i++) T[base64_chars[i]] = i;
+
+    int val=0, valb=-8;
+    for (char c : input) {
+        if (T[c] == -1) break;
+        val = (val<<6) + T[c];
+        valb += 6;
+        if (valb>=0) {
+            ret.push_back(char((val>>valb)&0xFF));
+            valb -= 8;
+        }
+    }
+    return ret;
+}
+
+int main() {
+    std::string input;
+    char buffer[4];
+    while (std::cin.read(buffer, sizeof(buffer))) {
+        input.append(buffer, sizeof(buffer));
+    }
+    // Handle remaining bytes
+    input.append(buffer, std::cin.gcount());
+    std::cout << base64_decode(input);
+
+    return 0;
+}
+```
